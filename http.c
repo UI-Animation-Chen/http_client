@@ -2,42 +2,50 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
 #include "http.h"
 
-void set_http_req(char *http_req, const char *method, const char *api,
+static void set_http_req(char *http_req, const char *method, const char *api,
 				  const char *data);
 
-int make_socket_conn(const char *host_ip, int port);
+static int make_socket_conn(const char *host_ip, int port);
 
-void make_http_request(int socket_df, const char *http_req, char *recv_buf);
+static void make_http_request(int socket_df, const char *http_req, char *recv_buf);
 
-void http_get(const char *url, const char *params, char *recv_buf)
+static int hostname_to_ip(const char *hostname, char *ip);
+
+void http_get(const char *api, const char *params, char *recv_buf)
 {
     char http_req[8192];
     memset(http_req, 0, 8192);
-    set_http_req(http_req, "GET", url, params);
+    set_http_req(http_req, "GET", api, params);
 	int socket_fd = make_socket_conn("172.16.0.139", 5030);
     make_http_request(socket_fd, http_req, recv_buf);
 }
 
-void http_post(const char *url, const char *data, char *recv_buf)
+void http_post(const char *api, const char *data, char *recv_buf)
 {	
 	char http_req[8192];
 	memset(http_req, 0, 8192);
-	set_http_req(http_req, "POST", url, data);
-	int socket_fd = make_socket_conn("172.16.0.139", 5030);
+	set_http_req(http_req, "POST", api, data);
+	char ip[17];
+	memset(ip, 0, sizeof(ip));
+	if (hostname_to_ip("gclass.jd100.com", ip) == 1)
+	{
+		exit(1);
+	}
+	int socket_fd = make_socket_conn(ip, 80);
     make_http_request(socket_fd, http_req, recv_buf);
 }
 
-void set_http_req(char *http_req, const char *method, const char *api,
+static void set_http_req(char *http_req, const char *method, const char *api,
                   const char *data)
 {
 	// --- request line ---
@@ -74,7 +82,27 @@ void set_http_req(char *http_req, const char *method, const char *api,
     printf("requset info:\n%s\n", http_req);
 }
 
-int make_socket_conn(const char *host_ip, int port)
+static int hostname_to_ip(const char *hostname, char *ip)
+{
+	struct hostent *hostent_ptr;
+	struct in_addr **addr_ptr_list;
+	
+	if ((hostent_ptr = gethostbyname(hostname)) == NULL)
+	{
+		perror("gethostbyname");
+		return 1;
+	}
+	addr_ptr_list = (struct in_addr **)hostent_ptr->h_addr_list;
+	for (int i = 0; addr_ptr_list[i] != NULL; i++)
+	{
+		strcpy(ip, inet_ntoa(*addr_ptr_list[i]));
+		printf("\nip:%s\n", ip);
+		return 0;
+	}
+	return 1;
+}
+
+static int make_socket_conn(const char *host_ip, int port)
 {	
 	int socket_fd;
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -101,7 +129,7 @@ int make_socket_conn(const char *host_ip, int port)
 	return socket_fd;
 }
 
-void make_http_request(int socket_fd, const char *http_req, char *recv_buf)
+static void make_http_request(int socket_fd, const char *http_req, char *recv_buf)
 {
     int sended_len;
     if ((sended_len = send(socket_fd, http_req, strlen(http_req), 0)) < 0)
