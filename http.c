@@ -71,7 +71,7 @@ void set_http_req(char *http_req, const char *method, const char *api,
     {
         strcat(http_req, data);
     }
-    printf("%s\n", http_req);
+    printf("requset info:\n%s\n", http_req);
 }
 
 int make_socket_conn(const char *host_ip, int port)
@@ -110,7 +110,7 @@ void make_http_request(int socket_fd, const char *http_req, char *recv_buf)
         perror("send err");
         exit(1);
     }
-    printf("sended len: %d\n", sended_len);
+    printf("\nsended len: %d\n", sended_len);
     
     if (recv(socket_fd, recv_buf, 8192, 0) < 0)
     {
@@ -118,6 +118,5 @@ void make_http_request(int socket_fd, const char *http_req, char *recv_buf)
         perror("recv err");
         exit(1);
     }
-    printf("recv:%s\n", recv_buf);
     close(socket_fd);
 }

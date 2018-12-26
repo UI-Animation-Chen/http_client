@@ -1,8 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-#include "../cJSON/cJSON.h"
 
 #include "http.h"
 
@@ -18,16 +15,8 @@ int main(int argc, char *argv[], char *arge[])
 	strcat(data, "\"role\":2,");
 	strcat(data, "\"remember\":true}");
 
-	cJSON *obj = cJSON_Parse(data);
-	if (obj == NULL)
-	{
-		printf("parse err ------\n");
-		exit(1);
-	}
-
 	http_post("/api/login", data, recv_buf);
-
-	cJSON_Delete(obj);
+	printf("\n%s\n", recv_buf);
 
 	return 0;
 }
