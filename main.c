@@ -15,7 +15,10 @@ int main(int argc, char *argv[], char *arge[])
 	strcat(data, "\"role\":2,");
 	strcat(data, "\"remember\":true}");
 
-	http_post("/api/login", data, recv_buf);
+	if (http_post("/api/login", data, recv_buf) != 0)
+	{
+		return 1;
+	}
 	printf("\n%s\n", recv_buf);
 
 	return 0;
