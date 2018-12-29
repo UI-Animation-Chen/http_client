@@ -12,6 +12,9 @@
 
 #include "http.h"
 
+#define HTTP_METHOD_GET "GET"
+#define HTTP_METHOD_POST "POST"
+
 #define HOST_IP_STRING "172.16.0.139"
 #define PORT 5030
 
@@ -29,12 +32,12 @@ static int hostname_to_ip(const char *hostname, char *ip);
 
 int http_get(const char *api, const char *params, char *recv_buf)
 {
-	return make_http_request("GET", api, params, recv_buf);
+	return make_http_request(HTTP_METHOD_GET, api, params, recv_buf);
 }
 
 int http_post(const char *api, const char *data, char *recv_buf)
 {	
-	return make_http_request("POST", api, data, recv_buf);
+	return make_http_request(HTTP_METHOD_POST, api, data, recv_buf);
 }
 
 static int make_http_request(const char *method, const char *api,
